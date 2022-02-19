@@ -24,33 +24,40 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => Products(),
+          create: (context) => Auth(),
+        ),
+        ChangeNotifierProxyProvider<Auth, Products>(
+          create: (context) => Products("", []),
+          update: (context, auth, previousProducts) => Products(auth.token!,
+              previousProducts!.items == null ? [] : previousProducts.items),
         ),
         ChangeNotifierProvider(
           create: (context) => Cart(),
         ),
-        ChangeNotifierProvider(
-          create: (context) => Orders(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => Auth(),
+        ChangeNotifierProxyProvider<Auth, Orders>(
+          create: (context) => Orders("", []),
+          update: (context, auth, previousOrders) => Orders(auth.token!,
+              previousOrders!.orders == null ? [] : previousOrders.orders),
         ),
       ],
-      child: MaterialApp(
-        title: 'Flutter Shop',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
-              .copyWith(secondary: Colors.yellow),
-          fontFamily: 'Lato',
-        ),
-        home: AuthScreen(),
-        routes: {
-          ProductDetailScreen.routeName: (context) => ProductDetailScreen(),
-          CartScreen.routeName: (context) => CartScreen(),
-          OrdersScreen.routeName: (context) => OrdersScreen(),
-          UserProductsScreen.routeName: (context) => UserProductsScreen(),
-          EditProductScreen.routeName: (context) => EditProductScreen(),
-        },
+      child: Consumer<Auth>(
+        builder: ((context, auth, child) => MaterialApp(
+              title: 'Flutter Shop',
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+                    .copyWith(secondary: Colors.yellow),
+                fontFamily: 'Lato',
+              ),
+              home: auth.isAuth ? ProductsOverviewScreen() : AuthScreen(),
+              routes: {
+                ProductDetailScreen.routeName: (context) =>
+                    ProductDetailScreen(),
+                CartScreen.routeName: (context) => CartScreen(),
+                OrdersScreen.routeName: (context) => OrdersScreen(),
+                UserProductsScreen.routeName: (context) => UserProductsScreen(),
+                EditProductScreen.routeName: (context) => EditProductScreen(),
+              },
+            )),
       ),
     );
   }

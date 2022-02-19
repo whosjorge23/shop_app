@@ -20,12 +20,12 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavoriteStatus() async {
+  Future<void> toggleFavoriteStatus(String token) async {
     final oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
-    final url =
-        Uri.parse('https://tictactoe-a543d.firebaseio.com/products/$id.json');
+    final url = Uri.parse(
+        'https://tictactoe-a543d.firebaseio.com/products/$id.json?auth=${token}');
     try {
       final response = await http.patch(
         url,
