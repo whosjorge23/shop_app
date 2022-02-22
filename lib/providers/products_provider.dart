@@ -78,7 +78,7 @@ class Products with ChangeNotifier {
     String filterString =
         filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
     final url = Uri.parse(
-        'https://tictactoe-a543d.firebaseio.com/products.json?auth=${authToken}&$filterByUser');
+        'https://tictactoe-a543d.firebaseio.com/products.json?auth=${authToken}&$filterString');
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
