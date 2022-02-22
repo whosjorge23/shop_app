@@ -45,8 +45,9 @@ class Products with ChangeNotifier {
   var _showFavoriteOnly = false;
 
   final String? authToken;
+  final String? userId;
 
-  Products(this.authToken, this._items);
+  Products(this.authToken, this.userId, this._items);
 
   List<Product> get items {
     // if (_showFavoriteOnly) {
@@ -73,15 +74,21 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Future<void> fetchAndSetProducts() async {
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    String filterString =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
     final url = Uri.parse(
-        'https://tictactoe-a543d.firebaseio.com/products.json?auth=${authToken}');
+        'https://tictactoe-a543d.firebaseio.com/products.json?auth=${authToken}&$filterByUser');
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       if (extractedData == null) {
         return;
       }
+      final urlFavorites = Uri.parse(
+          'https://tictactoe-a543d.firebaseio.com/userFavorites/$userId.json?auth=${authToken}');
+      final favoriteResponse = await http.get(urlFavorites);
+      final favoriteData = json.decode(favoriteResponse.body);
       final List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(Product(
@@ -90,7 +97,8 @@ class Products with ChangeNotifier {
           description: prodData['description'],
           price: prodData['price'],
           imageUrl: prodData['imageUrl'],
-          isFavorite: prodData['isFavorite'],
+          isFavorite:
+              favoriteData == null ? false : favoriteData[prodId] ?? false,
         ));
       });
       _items = loadedProducts;
@@ -112,7 +120,8 @@ class Products with ChangeNotifier {
             'description': product.description,
             'price': product.price,
             'imageUrl': product.imageUrl,
-            'isFavorite': product.isFavorite,
+            'creatorId': userId,
+            // 'isFavorite': product.isFavorite,
           },
         ),
       );
